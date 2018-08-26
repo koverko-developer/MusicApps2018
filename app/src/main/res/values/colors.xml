@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#73318A</color>
+    <color name="colorPrimaryDark">#542464</color>
+    <color name="colorPrimaryDark2">#393838</color>
+    <color name="colorAccent">#73318A</color>
+    <color name="trans">#00ffffff</color>
+    <color name="act">#6396e9</color>
+    <color name="dark">#dcdada</color>
+    <color name="grey">#ababab</color>
+    <color name="bg_view">#6396e9</color>
+    <color name="vk_border_et">#f2f2f2</color>
+    <color name="vk_black">#fff</color>
+    <color name="vk_white">#fff</color>
+    <color name="md_blue_grey_900">#263238</color>
+</resources>

@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MusicApps2018</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="text_test">fadsfasdfadsf</string><string name="play_initial_time">00:00</string><string name="track_number">Track</string><string name="title_activity_main2">Main2Activity</string>
+    <string name="navigation_drawer_open">OPEN</string>
+    <string name="navigation_drawer_close">CLOSE</string>
+</resources>
