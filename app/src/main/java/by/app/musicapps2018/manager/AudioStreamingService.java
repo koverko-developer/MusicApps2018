@@ -196,9 +196,9 @@ public class AudioStreamingService extends Service implements NotificationManage
                     notification.bigContentView.setImageViewBitmap(R.id.player_album_art, albumArt);
                 }
             } else {
-                notification.contentView.setImageViewResource(R.id.player_album_art, R.drawable.bg_default_album_art);
+                notification.contentView.setImageViewResource(R.id.player_album_art, R.drawable.image_2);
                 if (supportBigNotifications) {
-                    notification.bigContentView.setImageViewResource(R.id.player_album_art, R.drawable.bg_default_album_art);
+                    notification.bigContentView.setImageViewResource(R.id.player_album_art, R.drawable.image_2);
                 }
             }
             notification.contentView.setViewVisibility(R.id.player_progress_bar, View.GONE);
@@ -244,13 +244,12 @@ public class AudioStreamingService extends Service implements NotificationManage
                     metadataEditor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, albumArt);
                 }
                 metadataEditor.apply();
-                // TODO раскомментить!!!
-//                try {
-//                    startForeground(1, notification);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                    startForeground(7, notification);
-//                }
+                try {
+                    startForeground(1, notification);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    startForeground(7, notification);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -17,6 +17,8 @@ public class Prefs {
     private static final String APP_PREFERENCES_REVIEW = "review";
     private static final String APP_PREFERENCES_JOIN = "join";
     private static final String APP_PREFERENCES_PATH = "path";
+    private static final String APP_PREFERENCES_COUNT = "count";
+    private static final String APP_PREFERENCES_COUNT_Back = "count_back";
     private SharedPreferences mSettings;
 
     public Prefs(Context context) {
@@ -98,11 +100,29 @@ public class Prefs {
         return mSettings.getStringSet(APP_PREFERENCES_JOIN,null);
     }
 
+    public void setCount(int pred){
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putInt(APP_PREFERENCES_COUNT, pred);
+        editor.apply();
+    }
+    public int getCount(){
+        return mSettings.getInt(APP_PREFERENCES_COUNT,0);
+    }
+
     public boolean isLogin(){
 
         if(getID() == 0) return false;
         else return true;
 
+    }
+
+    public void setCountBack(int pred){
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putInt(APP_PREFERENCES_COUNT_Back, pred);
+        editor.apply();
+    }
+    public int getCountBack(){
+        return mSettings.getInt(APP_PREFERENCES_COUNT_Back,0);
     }
 
 }

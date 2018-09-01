@@ -7,6 +7,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
+
     <ImageView
         android:id="@+id/img_bg"
         android:layout_width="match_parent"
@@ -376,6 +378,16 @@
 
     </RelativeLayout>
 
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:visibility="visible"
+        ads:adSize="SMART_BANNER"
+        ads:adUnitId="@string/ban2" />
+
     <RelativeLayout
         android:id="@+id/rel_recycler"
         android:layout_width="match_parent"
@@ -433,6 +445,8 @@
             app:srcCompat="@drawable/img_5" />
 
     </RelativeLayout>
+
+
 
 
 </RelativeLayout>

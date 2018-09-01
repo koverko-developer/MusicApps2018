@@ -2,14 +2,20 @@ package by.app.musicapps2018.view;
 
 import android.Manifest;
 import android.animation.Animator;
+import android.annotation.SuppressLint;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.NestedScrollView;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,6 +24,8 @@ import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,6 +37,7 @@ import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
@@ -48,9 +57,13 @@ import com.codekidlabs.storagechooser.StorageChooser;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
 import com.github.ybq.endless.Endless;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import by.app.musicapps2018.R;
 import by.app.musicapps2018.adapter.AudioSelectAdapter;
@@ -75,15 +88,32 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
     //-------------------------
 
 
+    // notify
+
+    RelativeLayout rel_n;
+    ImageView img_expand_n;
+    TextView tv_progress_n, tv_name_n;
+    ProgressBar progress_n;
+    TextView tv_path;
+
+    //------------------
+
+    InterstitialAd interstitial;
     Fragment fragment;
     Toolbar toolbar;
     FloatingActionButton fab;
     IMainPresenter _presenter;
     ProgressBar progress;
     Endless endless;
+    AppBarLayout appBarLayout;
 
     ArrayList<JcAudio> listForSelect = new ArrayList<>();
+    List<MediaMetaData> listForDownload = new ArrayList<>();
+
     JcPlayerView player;
+
+
+    public boolean download = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,9 +125,8 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
         initVW();
         initSelectRel();
         updateCookies();
+        _presenter.checkNewVersion();
     }
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -134,10 +163,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -148,7 +173,13 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
             public void run() {
                 container = (NestedScrollView) findViewById(R.id.container) ;
                 progress = (ProgressBar) findViewById(R.id.progress);
-
+                appBarLayout = (AppBarLayout) findViewById(R.id.appbar);
+                progress_n = (ProgressBar) findViewById(R.id.progress_n);
+                img_expand_n = (ImageView) findViewById(R.id.img_expand_n);
+                tv_name_n = (TextView) findViewById(R.id.tv_name_n);
+                tv_progress_n = (TextView) findViewById(R.id.tv_progress_n);
+                rel_n = (RelativeLayout) findViewById(R.id.rel_n);
+                tv_path = (TextView) findViewById(R.id.tv_path);
                 toolbar = (Toolbar) findViewById(R.id.toolbar);
                 setSupportActionBar(toolbar);
 
@@ -160,6 +191,14 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
                     }
                 });
                 player = (JcPlayerView) findViewById(R.id.jcplayer);
+
+                img_expand_n.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(rel_n.getVisibility() == View.VISIBLE) hideNotify();
+                    }
+                });
+
 
             }});
 
@@ -175,6 +214,8 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
 
         runOnUiThread(new Runnable() {
             public void run() {
+                appBarLayout.setVisibility(View.VISIBLE);
+                player.setVisibility(View.VISIBLE);
                 if(container != null) container.setVisibility(View.GONE);
                 getSupportActionBar().setDisplayShowTitleEnabled(false);
                 // Setup spinner
@@ -188,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
                                 "Популярное",
                                 "Обновления друзей",
                                 "Выбор папки",
+                                "Выход",
                         }));
 
                 spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
@@ -202,6 +244,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
                         if(position == 3) _presenter.getPopular();
                         if(position == 4) _presenter.getUpdateFriends();
                         if(position == 5) showStorage();
+                        if(position == 6) _presenter.exit();
                     }
 
                     @Override
@@ -209,13 +252,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
                     }
                 });
 
-                //_presenter.getMyAudio();
-                //_presenter.getMyAudioAfter100(listForSelect.size());
-                //_presenter.getSpecial();
-                //_presenter.getNews();
-                //_presenter.getPopular();
-                //_presenter.getUpdateFriends();
-                //_presenter.getSearch("Егор Крид", 0);
+
             }
         });
 
@@ -223,6 +260,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
 
     @Override
     public void initWebView() {
+        container.setVisibility(View.VISIBLE);
         fragment = new FragmentsLogin(MainActivity.this);
         if(fragment != null) {
             getSupportFragmentManager().beginTransaction()
@@ -280,11 +318,16 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
 
     @Override
     public void onBackPressed() {
-        if(select_rel.getVisibility() == View.VISIBLE) hideSelectRel();
-        else {
+
+        if(select_rel.getVisibility() == View.VISIBLE) {
+            hideSelectRel();
+            return;
+        }
+
+        if(!_presenter.checkReview()){
             super.onBackPressed();
             finish();
-        }
+        }else showNewReviewDialog();
     }
 
     @Override
@@ -324,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
                         select_recycler.setAdapter(adapter);
                         showSelectRel();
                         if(player != null && player.getListOfSongs() != null &&
-                                player.getListOfSongs().size() == 0) initialiseListPlayer(list);
+                                player.getListOfSongs().size() == 0) initialiseListPlayer(list, false);
                         try {
 
                         } catch (Exception e) {
@@ -377,6 +420,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
 
     @Override
     public void showSelectRel() {
+        player.hideRecycler();
         try {
             runOnUiThread(new Runnable() {
                 public void run() {
@@ -419,6 +463,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
     protected void onPostResume() {
         super.onPostResume();
         checkPermission();
+        ads();
     }
 
     @Override
@@ -437,7 +482,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public void initialiseListPlayer(ArrayList<JcAudio> audios) {
+    public void initialiseListPlayer(ArrayList<JcAudio> audios, boolean play) {
 
         List<MediaMetaData> listMusic = new ArrayList<>();
 
@@ -455,14 +500,23 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
             listMusic.add(mediaMetaData);
         }
 
-        if(player != null) player.setListAudio(listMusic);
+        try {
+            if(player != null) {
+                if(play)player.setListAudio(listMusic);
+                else {
+                    player.setListAudio(listMusic);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void playAudioPosition(int position, ArrayList<JcAudio> audioArrayList) {
-        initialiseListPlayer(audioArrayList);
+        initialiseListPlayer(audioArrayList, true);
         if(player != null) {
             MediaMetaData metaData = player.getMedia(position);
            if(metaData != null) {
@@ -470,12 +524,24 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
            }
         }
         hideSelectRel();
-
+        _presenter.checkCount();
     }
 
     @Override
     public void downloadAudio(MediaMetaData mediaMetaData, int type) {
-        _presenter.downloadAudio(mediaMetaData, type);
+
+        if(listForDownload.contains(mediaMetaData)) return;;
+        _presenter.checkCount();
+
+        if(!download){
+            _presenter.downloadAudio(mediaMetaData, type);
+        }
+        else {
+            addToDownloadList(mediaMetaData);
+            Toast.makeText(MainActivity.this,
+                    mediaMetaData.getMediaArtist()+" - "+
+                            mediaMetaData.getMediaTitle()+" добавлена в загрузки", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -491,6 +557,284 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 199);
         }
+    }
+
+    @Override
+    public void showNotify() {
+        if(rel_n.getVisibility() == View.GONE){
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    rel_n.setVisibility(View.VISIBLE);
+                    YoYo.with(Techniques.SlideInDown)
+                            .duration(1000)
+                            .withListener(new Animator.AnimatorListener() {
+                                @Override
+                                public void onAnimationStart(Animator animator) {
+
+                                }
+
+                                @Override
+                                public void onAnimationEnd(Animator animator) {
+
+                                }
+
+                                @Override
+                                public void onAnimationCancel(Animator animator) {
+
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(Animator animator) {
+
+                                }
+                            })
+                            .playOn(rel_n);
+
+                }
+            });
+
+            runOnUiThread(new Runnable() {
+                public void run() {
+
+                    YoYo.with(Techniques.SlideOutUp)
+                            .duration(1000)
+                            .withListener(new Animator.AnimatorListener() {
+                                @Override
+                                public void onAnimationStart(Animator animator) {
+
+                                }
+
+                                @Override
+                                public void onAnimationEnd(Animator animator) {
+                                    appBarLayout.setVisibility(View.GONE);
+                                }
+
+                                @Override
+                                public void onAnimationCancel(Animator animator) {
+
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(Animator animator) {
+
+                                }
+                            })
+                            .playOn(appBarLayout);
+
+                }
+            });
+        }
+
+
+    }
+
+    @Override
+    public void hideNotify() {
+
+        runOnUiThread(new Runnable() {
+            public void run() {
+
+                YoYo.with(Techniques.SlideOutUp)
+                        .duration(1000)
+                        .withListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animator) {
+                                rel_n.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animator) {
+
+                            }
+                        })
+                        .playOn(rel_n);
+
+            }
+        });
+
+        runOnUiThread(new Runnable() {
+            public void run() {
+                appBarLayout.setVisibility(View.VISIBLE);
+                YoYo.with(Techniques.SlideInDown)
+                        .duration(1000)
+                        .withListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animator) {
+
+                            }
+                        })
+                        .playOn(appBarLayout);
+
+            }
+        });
+
+    }
+
+    @Override
+    public void setInfoNotify(MediaMetaData metaData, int progress, String path) {
+
+        runOnUiThread(new Runnable() {
+            @SuppressLint("ResourceType")
+            @Override
+            public void run() {
+
+                tv_path.setText("Сохраняем в "+path);
+                tv_name_n.setText(metaData.getMediaTitle() + " - "+ metaData.getMediaArtist());
+                progress_n.setProgress(progress);
+                tv_progress_n.setText(String.valueOf(progress)+" %");
+
+                if(progress > 0 && progress <= 20) {
+                    tv_name_n.setTextColor(getResources().getColor(R.color.color_0));
+                    tv_progress_n.setTextColor(getResources().getColor(R.color.color_0));
+                }else if(progress > 20 && progress <= 40) {
+                    tv_name_n.setTextColor(getResources().getColor(R.color.color_20));
+                    tv_progress_n.setTextColor(getResources().getColor(R.color.color_20));
+                }else if(progress > 40 && progress <= 60) {
+                    tv_name_n.setTextColor(getResources().getColor(R.color.color_40));
+                    tv_progress_n.setTextColor(getResources().getColor(R.color.color_40));
+                }else if(progress > 60 && progress <= 80) {
+                    tv_name_n.setTextColor(getResources().getColor(R.color.color_60));
+                    tv_progress_n.setTextColor(getResources().getColor(R.color.color_60));
+                }else if(progress > 80 && progress <= 100) {
+                    tv_name_n.setTextColor(getResources().getColor(R.color.color_80));
+                    tv_progress_n.setTextColor(getResources().getColor(R.color.color_80));
+                }
+            }
+        });
+
+    }
+
+    @Override
+    public boolean checkDownloadList() {
+
+        if(listForDownload.size() == 0) return false;
+        else return true;
+
+    }
+
+    @Override
+    public void addToDownloadList(MediaMetaData metaData) {
+        listForDownload.add(metaData);
+    }
+
+    @Override
+    public void deleteFromDownloadList(MediaMetaData metaData) {
+        listForDownload.remove(metaData);
+        nextDownloadAudio();
+    }
+
+    @Override
+    public void nextDownloadAudio() {
+        if(checkDownloadList()) downloadAudio(listForDownload.get(0), 1);
+    }
+
+    @Override
+    public void deleteDownloadList() {
+        listForDownload.clear();
+    }
+
+    @Override
+    public void setBooleanDownload(boolean b) {
+        download = b;
+    }
+
+    @Override
+    public void ads() {
+        Random random = new Random();
+        if(random.nextInt(4) == 1){
+            MobileAds.initialize(this, getResources().getString(R.string.id_ad2));
+            interstitial = new InterstitialAd(this);
+            interstitial.setAdUnitId(getResources().getString(R.string.int2));
+            AdRequest adRequesti = new AdRequest.Builder().build();
+            interstitial.loadAd(adRequesti);
+        }else {
+            MobileAds.initialize(this, getResources().getString(R.string.id_ad1));
+            interstitial = new InterstitialAd(this);
+            interstitial.setAdUnitId(getResources().getString(R.string.int1));
+            AdRequest adRequesti = new AdRequest.Builder().build();
+            interstitial.loadAd(adRequesti);
+        }
+    }
+
+    @Override
+    public void checkReview() {
+        _presenter.checkReview();
+    }
+
+    @Override
+    public void showAds() {
+        if (interstitial.isLoaded()) {
+            interstitial.show();
+            ads();
+        }
+
+    }
+
+    @Override
+    public void startNewVersion(String pakage) {
+
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + pakage)));
+        } catch (android.content.ActivityNotFoundException anfe) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + pakage)));
+        }
+
+    }
+
+    @Override
+    public void showNewReviewDialog() {
+
+        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+        alertDialog.setTitle("Пять звезд.");
+        alertDialog.setMessage("Понравилось приложние Поставь пять звезд. Поддержи разработчиков.");
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        final String appPackageName = getPackageName(); // getPackageName() from Context or Activity object
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+                        } catch (android.content.ActivityNotFoundException anfe) {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+                        }
+                    }
+                });
+        alertDialog.show();
+
+    }
+
+    @Override
+    public void resetAllView() {
+
+        if(player != null) player.setVisibility(View.GONE);
+        select_rel.setVisibility(View.GONE);
+        progress.setVisibility(View.GONE);
+        //container.setVisibility(View.GONE);
+
     }
 
     @Override
@@ -510,6 +854,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         super.onDestroy();
     }
 
@@ -549,5 +894,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
             mDropDownHelper.setDropDownViewTheme(theme);
         }
     }
+
 
 }

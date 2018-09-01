@@ -13,4 +13,9 @@
     <color name="vk_black">#fff</color>
     <color name="vk_white">#fff</color>
     <color name="md_blue_grey_900">#263238</color>
+    <color name="color_0">#ff7310</color>
+    <color name="color_20">#ffb710</color>
+    <color name="color_40">#ffe600</color>
+    <color name="color_60">#ffff00</color>
+    <color name="color_80">#a2ff00</color>
 </resources>

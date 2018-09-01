@@ -22,6 +22,7 @@
         app:srcCompat="@drawable/image_7" />
 
     <LinearLayout
+        android:id="@+id/view_play"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -58,6 +59,6 @@
         android:layout_height="45dp"
         android:layout_weight="3"
         android:padding="4dp"
-        app:srcCompat="@drawable/ic_more_vert_black_24dp" />
+        app:srcCompat="@drawable/ic_file_download_black_24dp" />
 
 </LinearLayout>

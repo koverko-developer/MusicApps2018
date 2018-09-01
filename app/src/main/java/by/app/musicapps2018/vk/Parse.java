@@ -64,8 +64,9 @@ public class Parse implements IParse{
 
     @Override
     public void downloadAudio(MediaMetaData mediaMetaData, int type, IMainActivity _view) {
-
+        //_view.updateCookies();
         try {
+
             String cookie = CookieManager.getInstance().getCookie("https://vk.com");
             Map<String, String> body = new HashMap();
             body.put("act", "reload_audio");
@@ -86,6 +87,72 @@ public class Parse implements IParse{
                             } else {
                                 path = decode(response.substring(response.indexOf("https"), response.indexOf("\",\"")).replace("\\", ""), id);
                                 mediaMetaData.setMediaUrl(path);
+
+                                String path = "";
+                                if(type == 1)  path = prefs.getPATH();
+                                else path = "";
+
+                                final DownloadRequest request = new DownloadRequest.Builder()
+                                        .setName(mediaMetaData.getMediaTitle() + "-"+
+                                                mediaMetaData.getMediaArtist()+ ".mp3")
+                                        .setUri(mediaMetaData.getMediaUrl())
+                                        .setFolder(new File(path))
+                                        .build();
+
+// download:
+// the tag here, you can simply use download uri as your tag;
+                                String finalPath = path;
+                                DownloadManager.getInstance().download(request, mediaMetaData.getMediaId(), new CallBack() {
+                                    @Override
+                                    public void onStarted() {
+                                        _view.showNotify();
+                                        _view.setBooleanDownload(true);
+                                    }
+
+                                    @Override
+                                    public void onConnecting() {
+
+                                    }
+
+                                    @Override
+                                    public void onConnected(long total, boolean isRangeSupport) {
+
+                                    }
+
+                                    @Override
+                                    public void onProgress(long finished, long total, int progress) {
+                                        _view.showNotify();
+                                        _view.setBooleanDownload(true);
+                                        _view.setInfoNotify(mediaMetaData, progress, finalPath);
+                                    }
+
+                                    @Override
+                                    public void onCompleted() {
+                                       _view.hideNotify();
+                                        _view.setBooleanDownload(false);
+                                       _view.deleteFromDownloadList(mediaMetaData);
+                                    }
+
+                                    @Override
+                                    public void onDownloadPaused() {
+                                        _view.deleteFromDownloadList(mediaMetaData);
+                                        _view.setBooleanDownload(false);
+                                    }
+
+                                    @Override
+                                    public void onDownloadCanceled() {
+                                        _view.deleteFromDownloadList(mediaMetaData);
+                                        _view.setBooleanDownload(false);
+                                    }
+
+                                    @Override
+                                    public void onFailed(DownloadException e) {
+                                        String s = e.toString();
+                                        _view.deleteDownloadList();
+                                        _view.setBooleanDownload(false);
+                                        _view.hideNotify();
+                                    }
+                                });
                             }
 
                             //return;
@@ -97,62 +164,7 @@ public class Parse implements IParse{
         } catch (Exception e) {
             e.printStackTrace();
         }
-        String path = "";
-        if(type == 1)  path = prefs.getPATH();
-        else path = "";
 
-        final DownloadRequest request = new DownloadRequest.Builder()
-                .setName(mediaMetaData.getMediaTitle() + "-"+
-                        mediaMetaData.getMediaArtist()+ ".mp3")
-                .setUri(mediaMetaData.getMediaUrl())
-                .setFolder(new File(path))
-                .build();
-
-// download:
-// the tag here, you can simply use download uri as your tag;
-        DownloadManager.getInstance().download(request, mediaMetaData.getMediaId(), new CallBack() {
-            @Override
-            public void onStarted() {
-                _view.showMessageDownloadStatus(mediaMetaData.getMediaTitle()+ "-"+
-                mediaMetaData.getMediaArtist(), 1);
-            }
-
-            @Override
-            public void onConnecting() {
-
-            }
-
-            @Override
-            public void onConnected(long total, boolean isRangeSupport) {
-
-            }
-
-            @Override
-            public void onProgress(long finished, long total, int progress) {
-
-            }
-
-            @Override
-            public void onCompleted() {
-                _view.showMessageDownloadStatus(mediaMetaData.getMediaTitle()+ "-"+
-                        mediaMetaData.getMediaArtist(), 2);
-            }
-
-            @Override
-            public void onDownloadPaused() {
-
-            }
-
-            @Override
-            public void onDownloadCanceled() {
-
-            }
-
-            @Override
-            public void onFailed(DownloadException e) {
-
-            }
-        });
 
     }
 

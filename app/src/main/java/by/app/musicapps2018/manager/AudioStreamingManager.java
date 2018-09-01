@@ -29,7 +29,7 @@ public class AudioStreamingManager extends StreamingManager {
     private boolean showPlayerNotification = false;
     public PendingIntent pendingIntent;
     private MediaMetaData currentAudio;
-    private List<MediaMetaData> mediaList = new ArrayList<>();
+    public List<MediaMetaData> mediaList = new ArrayList<>();
     public static volatile Handler applicationHandler = null;
     public static JcPlayerView player;
 

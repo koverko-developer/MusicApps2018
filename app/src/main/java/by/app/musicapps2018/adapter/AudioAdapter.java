@@ -2,7 +2,9 @@ package by.app.musicapps2018.adapter;
 
 import android.content.Context;
 import android.media.Image;
+import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -56,6 +58,22 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.AudioAdapter
             @Override
             public void onClick(View view) {
                 jcPlayerView.download(mediaMetaData, 1);
+            }
+        });
+
+        holder.img_p.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onClick(View view) {
+                jcPlayerView.playSong(mediaMetaData);
+            }
+        });
+
+        holder.view_p.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onClick(View view) {
+                jcPlayerView.playSong(mediaMetaData);
             }
         });
     }
@@ -112,6 +130,7 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.AudioAdapter
         private TextView audioTitle;
         private TextView audioArtist;
         private LinearLayout view;
+        private LinearLayout view_p;
         ImageView img_p, img_more;
 
 
@@ -120,6 +139,7 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.AudioAdapter
             this.audioArtist = (TextView) view.findViewById(R.id.item_artist);
             this.audioTitle = (TextView) view.findViewById(R.id.item_title);
             this.view = (LinearLayout) view.findViewById(R.id.veiw);
+            this.view_p = (LinearLayout) view.findViewById(R.id.view_play);
             this.img_p = (ImageView) view.findViewById(R.id.img_play);
             this.img_more = (ImageView) view.findViewById(R.id.img_more);
         }

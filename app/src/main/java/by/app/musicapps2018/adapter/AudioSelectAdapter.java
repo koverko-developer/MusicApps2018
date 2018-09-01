@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import by.app.musicapps2018.R;
+import by.app.musicapps2018.manager.MediaMetaData;
 import by.app.musicapps2018.view.MainActivity;
 import by.app.musicapps2018.view.jcplayer.JcAudio;
 
@@ -78,18 +79,39 @@ public class AudioSelectAdapter extends RecyclerView.Adapter<AudioSelectAdapter.
     @Override
     public void onBindViewHolder(AudioAdapterViewHolder holder, final int position) {
 
-        JcAudio audio = jcAudioList.get(position);
-        //audio.getSongUrl();
-        holder.audioArtist.setText(audio.getArtist_n());
-        holder.audioTitle.setText(audio.getTitle_n());
-        holder.view.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
-            @Override
-            public void onClick(View view) {
+        try {
+            JcAudio audio = jcAudioList.get(position);
+            //audio.getSongUrl();
+            holder.audioArtist.setText(audio.getArtist_n());
+            holder.audioTitle.setText(audio.getTitle_n());
+            holder.view.setOnClickListener(new View.OnClickListener() {
+                @RequiresApi(api = Build.VERSION_CODES.O)
+                @Override
+                public void onClick(View view) {
 
-                activity.playAudioPosition(position, (ArrayList<JcAudio>) jcAudioList);
-            }
-        });
+                    activity.playAudioPosition(position, (ArrayList<JcAudio>) jcAudioList);
+                }
+            });
+
+            holder.img.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    MediaMetaData mediaMetaData = new MediaMetaData();
+                    mediaMetaData.setMediaId(String.valueOf(audio.getId()));
+                    mediaMetaData.setMediaArtist(audio.getArtist_n());
+                    mediaMetaData.setMediaTitle(audio.getTitle_n());
+                    mediaMetaData.setMediaUrl(audio.getUrl());
+                    mediaMetaData.setMediaDuration(String.valueOf(audio.getDuration()));
+                    mediaMetaData.setMediaId(audio.getId_string());
+                    if(audio.getUrl() == null) mediaMetaData.setMediaUrl("");
+
+                    activity.downloadAudio(mediaMetaData, 1);
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -136,13 +158,15 @@ public class AudioSelectAdapter extends RecyclerView.Adapter<AudioSelectAdapter.
         private TextView audioTitle;
         private TextView audioArtist;
         private LinearLayout view;
+        private ImageView img;
 
 
         public AudioAdapterViewHolder(View view){
             super(view);
             this.audioArtist = (TextView) view.findViewById(R.id.item_artist);
             this.audioTitle = (TextView) view.findViewById(R.id.item_title);
-            this.view = (LinearLayout) view.findViewById(R.id.veiw);
+            this.view = (LinearLayout) view.findViewById(R.id.view_p);
+            this.img = (ImageView) view.findViewById(R.id.img_more);
         }
     }
 

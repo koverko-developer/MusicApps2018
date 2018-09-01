@@ -26,6 +26,9 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.AdRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +45,7 @@ public class JcPlayerView extends LinearLayout implements
         View.OnClickListener, SeekBar.OnSeekBarChangeListener, CurrentSessionCallback {
 
     Context context;
-    private AudioStreamingManager streamingManager;
+    public AudioStreamingManager streamingManager;
     private MediaMetaData currentSong;
     private List<MediaMetaData> listOfSongs = new ArrayList<MediaMetaData>();
     Handler h;
@@ -78,11 +81,8 @@ public class JcPlayerView extends LinearLayout implements
     ImageView img;
     RecyclerView recycler;
     RelativeLayout rel_recucler, rel_hide, rel_hide_mini;
-//    AvatarView avatarView;
-//    IImageLoader imageLoader1;
-    //SeekBar holoCircleSeekBar;
-//
-//    private AdView mAdView;
+    private AdView mAdView;
+
     AudioAdapter adapter;
 
     public JcPlayerView(Context context) {
@@ -101,6 +101,7 @@ public class JcPlayerView extends LinearLayout implements
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void init() {
         try {
             inflate(getContext(), R.layout.view_jcplayer, this);
@@ -111,12 +112,19 @@ public class JcPlayerView extends LinearLayout implements
             try {
                 if (streamingManager != null) {
                     streamingManager.subscribesCallBack(this);
+                }else {
+                    configAudioStreamer();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            configAudioStreamer();
 
+
+            MobileAds.initialize(context, getResources().getString(R.string.id_ad2));
+            mAdView = (AdView) findViewById(R.id.adView);
+            AdRequest adRequest = new AdRequest.Builder()
+                    .build();
+            mAdView.loadAd(adRequest);
 
             this.progressBarPlayer = (ProgressBar) findViewById(R.id.progress_bar_player);
             this.progressBarMini = (ProgressBar) findViewById(R.id.progressBar3);
@@ -663,7 +671,7 @@ public class JcPlayerView extends LinearLayout implements
 
     }
 
-    private void hideRecycler(){
+    public void hideRecycler(){
 
         activity.runOnUiThread(new Runnable() {
             public void run() {

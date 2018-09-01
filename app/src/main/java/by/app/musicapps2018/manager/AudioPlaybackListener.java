@@ -149,6 +149,7 @@ public class AudioPlaybackListener implements PlaybackListener, AudioManager.OnA
                 createMediaPlayerIfNeeded();
                 mState = PlaybackStateCompat.STATE_BUFFERING;
                 mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                if(item.getMediaUrl().contains("vkuseraudio")) item.setMediaUrl("");
                 //mWifiLock.acquire();
                 if(item.getMediaUrl()!= null && !item.getMediaUrl().isEmpty()){
                     jcPlayerView.showProgressBar();

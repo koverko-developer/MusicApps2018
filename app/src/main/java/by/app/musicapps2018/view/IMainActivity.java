@@ -22,10 +22,25 @@ public interface IMainActivity {
     void hideSelectRel();
     void showSelectRel();
     void initSelectRel();
-    void initialiseListPlayer(ArrayList<JcAudio> audios);
+    void initialiseListPlayer(ArrayList<JcAudio> audios, boolean play);
     void playAudioPosition(int position, ArrayList<JcAudio> audioArrayList);
     void downloadAudio(MediaMetaData mediaMetaData, int type);
     void showMessageDownloadStatus(String name, int type);
     void checkPermission();
+    void showNotify();
+    void hideNotify();
+    void setInfoNotify(MediaMetaData metaData, int progress, String path);
+    boolean checkDownloadList();
+    void addToDownloadList(MediaMetaData metaData);
+    void deleteFromDownloadList(MediaMetaData metaData);
+    void nextDownloadAudio();
+    void deleteDownloadList();
+    void setBooleanDownload(boolean b);
+    void ads();
+    void checkReview();
+    void showAds();
+    void startNewVersion(String pakage);
+    void showNewReviewDialog();
+    void resetAllView();
 
 }

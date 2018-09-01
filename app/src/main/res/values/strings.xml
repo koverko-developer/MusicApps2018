@@ -5,4 +5,14 @@
     <string name="text_test">fadsfasdfadsf</string><string name="play_initial_time">00:00</string><string name="track_number">Track</string><string name="title_activity_main2">Main2Activity</string>
     <string name="navigation_drawer_open">OPEN</string>
     <string name="navigation_drawer_close">CLOSE</string>
+
+    <string name="ban1">ca-app-pub-5183973519065139/4964380249</string>
+    <string name="ban2">ca-app-pub-1774878275661991/3055743020</string>
+
+    <string name="id_ad1">ca-app-pub-1563785045157371~9390098968</string>
+    <string name="id_ad2">ca-app-pub-1774878275661991~1206532781</string>
+
+    <string name="int1">ca-app-pub-1563785045157371/8679652526</string>
+    <string name="int2">ca-app-pub-1774878275661991/2193662466</string>
+
 </resources>
