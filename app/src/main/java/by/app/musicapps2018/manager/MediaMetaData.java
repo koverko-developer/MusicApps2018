@@ -3,7 +3,9 @@ package by.app.musicapps2018.manager;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class MediaMetaData implements Parcelable {
+import io.realm.RealmObject;
+
+public class MediaMetaData extends RealmObject implements Parcelable {
 
     private String mediaId;
     private String mediaUrl;

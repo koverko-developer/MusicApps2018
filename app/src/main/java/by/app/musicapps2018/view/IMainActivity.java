@@ -42,5 +42,6 @@ public interface IMainActivity {
     void startNewVersion(String pakage);
     void showNewReviewDialog();
     void resetAllView();
+    void hide();
 
 }

@@ -316,19 +316,24 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
 
     }
 
-    @Override
-    public void onBackPressed() {
+    @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if(select_rel.getVisibility() == View.VISIBLE) {
+                hideSelectRel();
+                return true;
+            }
+            if(!_presenter.checkReview()){
+                hide();
+                showAds();
 
-        if(select_rel.getVisibility() == View.VISIBLE) {
-            hideSelectRel();
-            return;
-        }
-
-        if(!_presenter.checkReview()){
-            super.onBackPressed();
-            finish();
-        }else showNewReviewDialog();
+            }else {
+                showNewReviewDialog();
+                return true;
+            }
+        } return super.onKeyDown(keyCode, event);
     }
+
+
 
     @Override
     public void updateCookies() {
@@ -791,9 +796,11 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
         if (interstitial.isLoaded()) {
             interstitial.show();
             ads();
+
         }
 
     }
+
 
     @Override
     public void startNewVersion(String pakage) {
@@ -835,6 +842,14 @@ public class MainActivity extends AppCompatActivity implements IMainActivity{
         progress.setVisibility(View.GONE);
         //container.setVisibility(View.GONE);
 
+    }
+
+    @Override
+    public void hide() {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
     @Override

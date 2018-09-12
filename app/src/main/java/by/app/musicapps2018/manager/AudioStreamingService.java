@@ -2,9 +2,11 @@ package by.app.musicapps2018.manager;
 
 import android.app.Activity;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
@@ -13,6 +15,7 @@ import android.media.RemoteControlClient;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -85,6 +88,7 @@ public class AudioStreamingService extends Service implements NotificationManage
         super.onCreate();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public int onStartCommand(Intent startIntent, int flags, int startId) {
         try {
@@ -149,6 +153,7 @@ public class AudioStreamingService extends Service implements NotificationManage
         return START_NOT_STICKY;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void createNotification(MediaMetaData mSongDetail) {
         try {
             String songName = mSongDetail.getMediaTitle();
@@ -161,14 +166,27 @@ public class AudioStreamingService extends Service implements NotificationManage
             if (supportBigNotifications) {
                 expandedView = new RemoteViews(getApplicationContext().getPackageName(), R.layout.player_big_notification);
             }
+            int notifyID = 1;
+            String CHANNEL_ID = "my_channel_01";
+            CharSequence name = getString(R.string.app_name);
+            int importance = android.app.NotificationManager.IMPORTANCE_DEFAULT;
 
-
+            //Notification notification = null;
             Notification notification = null;
+            android.app.NotificationManager notificationManager =
+                    (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
             if (pendingIntent != null) {
-                notification = new NotificationCompat.Builder(getApplicationContext()).setSmallIcon(R.drawable.ic_launcher_foreground)
+
+                notification = new NotificationCompat.Builder(getApplicationContext())
+                        .setSmallIcon(R.drawable.ic_launcher_foreground)
+                        .setChannelId(CHANNEL_ID)
                         .setContentIntent(pendingIntent).setContentTitle(songName).build();
+
             } else {
-                notification = new NotificationCompat.Builder(getApplicationContext()).setSmallIcon(R.drawable.ic_launcher_foreground)
+                notification = new NotificationCompat.Builder(getApplicationContext())
+                        .setSmallIcon(R.drawable.ic_launcher_foreground)
+                        .setChannelId(CHANNEL_ID)
                         .setContentTitle(songName).build();
             }
 
@@ -233,8 +251,14 @@ public class AudioStreamingService extends Service implements NotificationManage
                 notification.bigContentView.setTextViewText(R.id.player_author_name, authorName);
                 notification.bigContentView.setTextViewText(R.id.player_albumname, albumName);
             }
+
             notification.flags |= Notification.FLAG_ONGOING_EVENT;
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name , importance);
+
+                notificationManager.createNotificationChannel(mChannel);
+            }
 //
             if (remoteControlClient != null) {
                 RemoteControlClient.MetadataEditor metadataEditor = remoteControlClient.editMetadata(true);
@@ -244,12 +268,7 @@ public class AudioStreamingService extends Service implements NotificationManage
                     metadataEditor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, albumArt);
                 }
                 metadataEditor.apply();
-                try {
-                    startForeground(1, notification);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    startForeground(7, notification);
-                }
+                notificationManager.notify(5, notification);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -295,6 +314,7 @@ public class AudioStreamingService extends Service implements NotificationManage
         NotificationManager.getInstance().removeObserver(this, NotificationManager.audioPlayStateChanged);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void didReceivedNotification(int id, Object... args) {
         try {

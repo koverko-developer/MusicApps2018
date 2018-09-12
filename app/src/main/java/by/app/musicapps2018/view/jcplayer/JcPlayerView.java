@@ -40,6 +40,8 @@ import by.app.musicapps2018.manager.CurrentSessionCallback;
 import by.app.musicapps2018.manager.Logger;
 import by.app.musicapps2018.manager.MediaMetaData;
 import by.app.musicapps2018.view.MainActivity;
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 public class JcPlayerView extends LinearLayout implements
         View.OnClickListener, SeekBar.OnSeekBarChangeListener, CurrentSessionCallback {
@@ -85,11 +87,16 @@ public class JcPlayerView extends LinearLayout implements
 
     AudioAdapter adapter;
 
+    private Realm mRealm;
+
+    @TargetApi(Build.VERSION_CODES.O)
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public JcPlayerView(Context context) {
         super(context);
         init();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public JcPlayerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
@@ -189,10 +196,11 @@ public class JcPlayerView extends LinearLayout implements
             if (view.getId() == R.id.btn_play) {
 
                 if(this.currentSong == null) {
-                    if(listOfSongs != null) this.currentSong = listOfSongs.get(0);
+                    if(listOfSongs != null && listOfSongs.size() != 0) this.currentSong = listOfSongs.get(0);
                     else return;
                 }
 
+                if(listOfSongs.size() == 0 || listOfSongs == null) return;;
                 if (streamingManager.isPlaying()) {
                     btnPlay.setBackground(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_24dp));
 
@@ -611,23 +619,26 @@ public class JcPlayerView extends LinearLayout implements
     }
 
     public void setRecycler(List<MediaMetaData> list) {
-        try {
-            activity.runOnUiThread(new Runnable() {
-                @RequiresApi(api = Build.VERSION_CODES.O)
-                public void run() {
-                    if(list != null && list.size() != 0) {
-                        final LinearLayoutManager layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false);
-                        recycler.setLayoutManager(layoutManager);
-                        adapter = new AudioAdapter(context, list, JcPlayerView.this);
-                        recycler.setAdapter(adapter);
 
+//
+            try {
+                activity.runOnUiThread(new Runnable() {
+                    @RequiresApi(api = Build.VERSION_CODES.O)
+                    public void run() {
+                        if (list != null && list.size() != 0) {
+                            final LinearLayoutManager layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false);
+                            recycler.setLayoutManager(layoutManager);
+                            adapter = new AudioAdapter(context, list, JcPlayerView.this);
+                            recycler.setAdapter(adapter);
+
+                        }
                     }
-                }
-            });
+                });
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
 
     }
 
